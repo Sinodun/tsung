@@ -70,6 +70,7 @@ my $category;
 my $CPU_MAX = 3200; # cpu usage should never be higher than 3200% (32 cores at 100%)
 
 my $prefix ="@prefix@";
+my $datarootdir = "@datarootdir@";
 
 unless ($template_dir) {
     if (-d (dirname($0) . "/templates/")) {

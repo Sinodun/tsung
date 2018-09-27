@@ -119,7 +119,30 @@ AC_CONFIG_FILES([\
         tsung.spec \
         tsung.sh \
         tsung-recorder.sh \
-        examples/*.xml \
+        examples/amqp.xml \
+        examples/bosh.xml \
+        examples/fs-nfs.xml \
+        examples/http-digest.xml \
+        examples/http-oauth.xml \
+        examples/http_distributed.xml \
+        examples/http_setdynvars.xml \
+        examples/http_simple.xml \
+        examples/http_tag.xml \
+        examples/jabber.xml \
+        examples/jabber_muc.xml \
+        examples/jabber_node.xml \
+        examples/jabber_privacy.xml \
+        examples/jabber_register.xml \
+        examples/jabber_roster.xml \
+        examples/jabber_starttls.xml \
+        examples/ldap.xml \
+        examples/mqtt.xml \
+        examples/mysql.xml \
+        examples/pgsql.xml \
+        examples/raw.xml \
+        examples/thinks.xml \
+        examples/thinks2.xml \
+        examples/websocket.xml \
         src/tsung_stats.pl \
         src/tsung-plotter/tsplot.py \
         src/log2tsung.pl \
