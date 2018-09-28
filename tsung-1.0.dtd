@@ -141,7 +141,7 @@ repeat | if | change_type | foreach | set_option | interaction | abort )*>
     persistent   (true | false) #IMPLIED
     probability   NMTOKEN #IMPLIED
     weight        NMTOKEN #IMPLIED
-    type         (ts_jabber | ts_http | ts_raw | ts_pgsql | ts_ldap | ts_webdav |ts_mysql| ts_fs | ts_shell | ts_job | ts_websocket | ts_amqp | ts_mqtt) #REQUIRED>
+    type         (ts_jabber | ts_http | ts_raw | ts_pgsql | ts_ldap | ts_webdav |ts_mysql| ts_fs | ts_shell | ts_job | ts_websocket | ts_amqp | ts_mqtt | ts_dns) #REQUIRED>
 
 <!ELEMENT session_setup EMPTY>
 <!ATTLIST session_setup
@@ -161,7 +161,7 @@ repeat | if | change_type | foreach | set_option | interaction | abort )*>
 
 <!ELEMENT change_type EMPTY>
 <!ATTLIST change_type
-     new_type         (ts_jabber | ts_http | ts_raw | ts_pgsql | ts_ldap | ts_webdav | ts_mysql | ts_fs | ts_shell | ts_job | ts_websocket | ts_amqp | ts_mqtt) #REQUIRED
+     new_type         (ts_jabber | ts_http | ts_raw | ts_pgsql | ts_ldap | ts_webdav | ts_mysql | ts_fs | ts_shell | ts_job | ts_websocket | ts_amqp | ts_mqtt | ts_dns) #REQUIRED
      host CDATA #REQUIRED
      port CDATA #REQUIRED
      server_type NMTOKEN #REQUIRED
@@ -171,7 +171,7 @@ repeat | if | change_type | foreach | set_option | interaction | abort )*>
     >
 
 <!ELEMENT request ( match*, dyn_variable*, ( http | jabber | raw |
-          pgsql | ldap | mysql |fs | shell | job | websocket | amqp | mqtt) )>
+          pgsql | ldap | mysql |fs | shell | job | websocket | amqp | mqtt | dns) )>
 <!ATTLIST request
     subst (true|false|all_except_body) "false"
     tag   NMTOKEN "undefined"
@@ -415,6 +415,12 @@ repeat | if | change_type | foreach | set_option | interaction | abort )*>
     username CDATA ""
     password CDATA ""
     client_id CDATA "">
+
+<!ELEMENT dns EMPTY >
+<!ATTLIST dns
+    qtype CDATA "A"
+    qclass CDATA "IN"
+    qname CDATA "example.com">
 
 <!ELEMENT modification (attr*) >
 <!ATTLIST modification

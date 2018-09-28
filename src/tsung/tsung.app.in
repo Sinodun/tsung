@@ -37,6 +37,7 @@
                        ts_client_sup,
                        ts_cport,
                        ts_digest,
+                       ts_dns,
                        ts_dynvars,
                        ts_erlang,
                        ts_fs,
