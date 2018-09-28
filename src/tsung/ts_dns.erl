@@ -39,6 +39,66 @@
          decode_buffer/2,
          new_session/0]).
 
+%%
+%% Creating DNS messages.
+%%
+%% Over time I expect this to get more comprehensive. At present it's
+%% only sufficient to construct basic queries.
+%%
+
+encode_qtype(Qtype) ->
+    case string:casefold(Qtype) of
+        "a" -> 1;
+        "ns" -> 2;
+        "cname" -> 5;
+        "soa" -> 6;
+        "ptr" -> 12;
+        "mx" -> 15;
+        "txt" -> 16;
+        "aaaa" -> 28;
+        Qtype when is_list(Qtype) -> list_to_integer(Qtype)
+    end.
+
+encode_qclass(Qclass) ->
+    case string:casefold(Qclass) of
+        "in" -> 1;
+        "chaos" -> 3;
+        "hesiod" -> 4;
+        "none" -> 254;
+        "any" -> 255;
+        Qclass when is_list(Qclass) -> list_to_integer(Qclass)
+    end.
+
+%% Don't bother with label compression. And note the complete lack of
+%% error checking in label conversion.
+encode_name(Qname) ->
+    Labels = string:tokens(Qname, "."),
+    LabelSizeList = [[string:len(L), L] || L <- Labels],
+    list_to_binary(LabelSizeList++[0]).
+
+encode_query(#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname}) ->
+    Type = encode_qtype(Qtype),
+    Class = encode_qclass(Qclass),
+    Name = encode_name(Qname),
+    Id = rand:uniform(65535),
+
+    Header = <<Id:16,    %% Query ID
+               0:1,      %% Query/Response flag, 0 = Query
+               0:4,      %% Opcode, 0 = QUERY
+               0:1,      %% AA
+               0:1,      %% TC
+               1:1,      %% RD
+               0:1,      %% RA
+               0:1,      %% Z
+               1:1,      %% AD
+               0:1,      %% CD
+               0:4,      %% RCODE
+               1:16,     %% QDCOUNT
+               0:16,     %% ANCOUNT
+               0:16,     %% NSCOUNT
+               0:16>>,   %% ARCOUNT
+    <<Header/binary, Name/binary, Type:16, Class:16>>.
+
 %%----------------------------------------------------------------------
 %% Function: session_default/0
 %% Purpose: default parameters for session
@@ -68,14 +128,8 @@ new_session() ->
 %% Args:    record
 %% Returns: binary
 %%----------------------------------------------------------------------
-get_message(_Req,StateRcv) ->
-    Hex = ["3e","c3","01","20","00","01","00","00","00","00","00","01","03",
-           "77","77","77","05","6c","75","6e","63","68","03","6f","72","67",
-           "02","75","6b","00","00","01","00","01","00","00","29","10","00",
-           "00","00","00","00","00","0c","00","0a","00","08","0d","7d","46",
-           "9d","3a","43","ac","80"],
-    Ints = [list_to_integer(H, 16) || H <- Hex],
-    { list_to_binary(Ints),StateRcv }.
+get_message(#dns_request{} = Request, StateRcv) ->
+    { encode_query(Request), StateRcv }.
 
 %%----------------------------------------------------------------------
 %% Function: parse/2
