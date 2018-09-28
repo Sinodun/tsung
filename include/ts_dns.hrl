@@ -24,9 +24,9 @@
 
 -record(dns_request,
         {
-         qtype,
-         qname,
-         qclass
+         qtype = "a",
+         qclass = "in",
+         qname = "example.com"
         }).
 
 -record(dns_session,
