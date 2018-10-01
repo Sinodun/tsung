@@ -52,10 +52,36 @@ encode_qtype(Qtype) ->
         "ns" -> 2;
         "cname" -> 5;
         "soa" -> 6;
+        "wks" -> 11;
         "ptr" -> 12;
         "mx" -> 15;
         "txt" -> 16;
+        "sig" -> 24;
         "aaaa" -> 28;
+        "srv" -> 33;
+        "naptr" -> 35;
+        "cert" -> 37;
+        "a6" -> 38;
+        "dname" -> 39;
+        "opt" -> 41;
+        "sshfp" -> 44;
+        "ipseckey" -> 45;
+        "rrsig" -> 45;
+        "nsec" -> 47;
+        "dnskey" -> 48;
+        "dhcid" -> 49;
+        "nsec3" -> 50;
+        "nsec3param" -> 51;
+        "tlsa" -> 52;
+        "hip" -> 55;
+        "cds" -> 59;
+        "cdnskey" -> 60;
+        "openpgpkey" -> 60;
+        "tkey" -> 249;
+        "tsig" -> 250;
+        "uri" -> 256;
+        "caa" -> 257;
+        "dlv" -> 32769;
         Qtype when is_list(Qtype) -> list_to_integer(Qtype)
     end.
 
