@@ -71,9 +71,16 @@ encode_qclass(Qclass) ->
 
 %% Don't bother with label compression. And note the complete lack of
 %% error checking in label conversion.
+encode_label_size(Label, Size) when Size =< 63 ->
+    [Size, Label];
+encode_label_size(Label, Size) when Size > 63 ->
+    ?LOGF("Truncating too-long QNAME label ~p ~n", [Label], ?WARN),
+    Trunc = string:left(Label, 63),
+    [ string:len(Trunc), Trunc ].
+
 encode_name(Qname) ->
     Labels = string:tokens(Qname, "."),
-    LabelSizeList = [[string:len(L), L] || L <- Labels],
+    LabelSizeList = [encode_label_size(L, string:len(L)) || L <- Labels],
     list_to_binary(LabelSizeList++[0]).
 
 encode_query(#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname}) ->
