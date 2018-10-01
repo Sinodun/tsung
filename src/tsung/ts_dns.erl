@@ -132,7 +132,9 @@ encode_query(#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname}) ->
                0:16>>,   %% ARCOUNT
     <<Header/binary, Name/binary, Type:16, Class:16>>.
 
-encode_query(Request, gen_udp) ->
+encode_query(Request, ts_udp) ->
+    encode_query(Request);
+encode_query(Request, ts_udp6) ->
     encode_query(Request);
 encode_query(Request, _) ->
     Query = encode_query(Request),
