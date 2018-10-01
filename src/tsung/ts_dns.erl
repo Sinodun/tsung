@@ -163,6 +163,10 @@ parse_config(Element, Conf) ->
 %%                                               Host  = String
 %% Returns: #myproto_request
 %%----------------------------------------------------------------------
+add_dynparams(_,[], Param, _Host) ->
+    Param;
+add_dynparams(true, {DynVars, _Session}, OldReq, _Host) ->
+    subst(OldReq, DynVars);
 add_dynparams(_Subst, _DynData, Param, _HostData) ->
     Param.
 
@@ -171,5 +175,7 @@ add_dynparams(_Subst, _DynData, Param, _HostData) ->
 %% Purpose: Replace on the fly dynamic element of the request.
 %% Returns: #myproto_request
 %%----------------------------------------------------------------------
-%%subst(Req=#myproto_request, DynData) ->
-%%    todo.
+subst(Req=#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname}, DynVars) ->
+    Req#dns_request{qtype = ts_search:subst(Qtype, DynVars),
+                    qclass = ts_search:subst(Qclass, DynVars),
+                    qname = ts_search:subst(Qname, DynVars)}.
