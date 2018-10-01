@@ -99,6 +99,13 @@ encode_query(#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname}) ->
                0:16>>,   %% ARCOUNT
     <<Header/binary, Name/binary, Type:16, Class:16>>.
 
+encode_query(Request, gen_udp) ->
+    encode_query(Request);
+encode_query(Request, _) ->
+    Query = encode_query(Request),
+    Qsize = size(Query),
+    << Qsize:16, Query/binary >>.
+
 %%----------------------------------------------------------------------
 %% Function: session_default/0
 %% Purpose: default parameters for session
@@ -128,8 +135,8 @@ new_session() ->
 %% Args:    record
 %% Returns: binary
 %%----------------------------------------------------------------------
-get_message(#dns_request{} = Request, StateRcv) ->
-    { encode_query(Request), StateRcv }.
+get_message(#dns_request{} = Request, #state_rcv{protocol=Proto} = StateRcv) ->
+    { encode_query(Request, Proto), StateRcv }.
 
 %%----------------------------------------------------------------------
 %% Function: parse/2
