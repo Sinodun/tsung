@@ -140,8 +140,11 @@ encode_query(Request, _) ->
     Qsize = size(Query),
     << Qsize:16, Query/binary >>.
 
+next_id(Id) ->
+    (Id + 1) band 16#FFFF.
+
 next_id(Id, Outstanding) ->
-    Next = (Id + 1) band 16#FFFF,
+    Next = next_id(Id),
     case sets:is_element(Next, Outstanding) of
         true ->
             next_id(Next, Outstanding);
@@ -150,8 +153,7 @@ next_id(Id, Outstanding) ->
     end.
 
 get_id(#dns_session{next_id=Id, outstanding_ids=Outstanding} = Session) ->
-    { Next, NextOutstanding } = next_id(Id, Outstanding),
-    { Id, Session#dns_session{next_id=Next, outstanding_ids=NextOutstanding} }.
+    { Id, Session#dns_session{next_id=next_id(Id)} }.
 
 %%----------------------------------------------------------------------
 %% Function: session_default/0
