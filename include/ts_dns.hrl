@@ -26,11 +26,14 @@
         {
          qtype = "a",
          qclass = "in",
-         qname = "example.com"
+         qname = "example.com",
+         id
         }).
 
 -record(dns_session,
         {
-         type
+         type,
+         next_id = 1,
+         outstanding_ids = sets:new()
         }).
 

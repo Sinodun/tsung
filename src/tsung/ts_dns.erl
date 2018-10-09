@@ -109,11 +109,10 @@ encode_name(Qname) ->
     LabelSizeList = [encode_label_size(L, string:len(L)) || L <- Labels],
     list_to_binary(LabelSizeList++[0]).
 
-encode_query(#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname}) ->
+encode_query(#dns_request{qtype=Qtype, qclass=Qclass, qname=Qname, id=Id}) ->
     Type = encode_qtype(Qtype),
     Class = encode_qclass(Qclass),
     Name = encode_name(Qname),
-    Id = rand:uniform(65535),
 
     Header = <<Id:16,    %% Query ID
                0:1,      %% Query/Response flag, 0 = Query
@@ -140,6 +139,19 @@ encode_query(Request, _) ->
     Query = encode_query(Request),
     Qsize = size(Query),
     << Qsize:16, Query/binary >>.
+
+next_id(Id, Outstanding) ->
+    Next = (Id + 1) band 16#FFFF,
+    case sets:is_element(Next, Outstanding) of
+        true ->
+            next_id(Next, Outstanding);
+        _ ->
+            { Next, sets:add_element(Id, Outstanding) }
+    end.
+
+get_id(#dns_session{next_id=Id, outstanding_ids=Outstanding} = Session) ->
+    { Next, NextOutstanding } = next_id(Id, Outstanding),
+    { Id, Session#dns_session{next_id=Next, outstanding_ids=NextOutstanding} }.
 
 %%----------------------------------------------------------------------
 %% Function: session_default/0
@@ -170,8 +182,11 @@ new_session() ->
 %% Args:    record
 %% Returns: binary
 %%----------------------------------------------------------------------
-get_message(#dns_request{} = Request, #state_rcv{protocol=Proto} = StateRcv) ->
-    { encode_query(Request, Proto), StateRcv }.
+get_message(#dns_request{} = Request, #state_rcv{protocol=Proto, session=Session}) ->
+    { Id, NewSession } = get_id(Session),
+    Req = Request#dns_request{id=Id},
+    ?DebugF("get_message ~p, Id ~p~n", [Request#dns_request.qname, Id]),
+    { encode_query(Req, Proto), NewSession }.
 
 %%----------------------------------------------------------------------
 %% Function: parse/2
@@ -180,8 +195,19 @@ get_message(#dns_request{} = Request, #state_rcv{protocol=Proto} = StateRcv) ->
 %% Args:    Data (binary), State (#state_rcv)
 %% Returns: {NewState, Options for socket (list), Close = true|false}
 %%----------------------------------------------------------------------
-parse(_Data, State) ->
-    State.
+parse(Data, #state_rcv{session=Session} = State) ->
+    <<Id:16, _Flags:12, Rcode:4>> = binary:part(Data, 0, 4),
+    ?DebugF("parse, Id ~p Rcode ~p ~n", [Id, Rcode]),
+    Outstanding = Session#dns_session.outstanding_ids,
+    case sets:is_element(Id, Outstanding) of
+        true ->
+            NewOutstanding = sets:del_element(Id, Session#dns_session.outstanding_ids),
+            NewSession = Session#dns_session{outstanding_ids=NewOutstanding},
+            { State#state_rcv{ack_done = true, datasize = 0, session=NewSession}, [], false };
+        _ ->
+            ?LOGF("Id ~p does not match outstanding Id~n", [Id], ?ERR),
+            { State#state_rcv{ack_done = false, datasize = 0}, [], true }
+    end.
 
 parse_bidi(Data, State) ->
     ts_plugin:parse_bidi(Data,State).
